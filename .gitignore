@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.js.map
+*.d.ts
+!src/**/*.d.ts
+
+# Environment & secrets
+.env
+serviceAccountKey.json
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,140 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  getLatestFlareRun,
+  getLatestCoreRun,
+  formatDataAge,
+} from "./firestore-client.js";
+import { FlareOutputSchema, CoreOutputSchema } from "./types.js";
+
+export function createServer(): McpServer {
+  const server = new McpServer({
+    name: "blackswan",
+    version: "0.1.0",
+  });
+
+  // ── flare ─────────────────────────────────────────────────────────────
+  server.tool(
+    "flare",
+    "BlackSwan Flare — Precursor Detection agent. Returns the latest risk assessment from a 30-minute signal window across derivatives, prediction markets, social intelligence, and market data. Use this for immediate, alarm-bell risk detection. Output: { status, severity (none/low/medium/high/critical), checked_at, assessment, signals[] }",
+    async () => {
+      try {
+        const run = await getLatestFlareRun();
+
+        if (!run) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "No recent Flare agent runs found. The system may be starting up or experiencing issues." }),
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const parseResult = FlareOutputSchema.safeParse(run.output);
+        if (!parseResult.success) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "Failed to parse Flare output. The agent output format may have changed." }),
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({
+                agent: "flare",
+                data_age: formatDataAge(createdAt),
+                ...parseResult.data,
+              }),
+            },
+          ],
+        };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({ error: `Error fetching Flare data: ${msg}` }),
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // ── core ──────────────────────────────────────────────────────────────
+  server.tool(
+    "core",
+    "BlackSwan Core — State Synthesis agent. Returns the latest comprehensive risk environment assessment from a 2-4 hour signal window across all data sources including news. Use this for full market context and holistic risk assessment. Output: { timestamp, environment (stable/elevated/stressed/crisis), assessment, key_factors[], sources_used[], data_freshness }",
+    async () => {
+      try {
+        const run = await getLatestCoreRun();
+
+        if (!run) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "No recent Core agent runs found. The system may be starting up or experiencing issues." }),
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const parseResult = CoreOutputSchema.safeParse(run.output);
+        if (!parseResult.success) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "Failed to parse Core output. The agent output format may have changed." }),
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({
+                agent: "core",
+                data_age: formatDataAge(createdAt),
+                ...parseResult.data,
+              }),
+            },
+          ],
+        };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({ error: `Error fetching Core data: ${msg}` }),
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  return server;
+}
