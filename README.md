@@ -8,24 +8,28 @@ BlackSwan monitors crypto markets across 6 risk dimensions (Market, Event, Proto
 
 | Tool | Description |
 |------|-------------|
-| `check_risk` | Latest risk level from the Flare precursor detection agent — severity, signals, and assessment |
-| `assess_environment` | Latest environment state from the Core synthesis agent — environment level, key factors, and sources |
-| `system_status` | System health — last agent run times, severity levels, pipeline datapoint counts |
+| `flare` | Precursor Detection — 30-min signal window for immediate risk alarm (severity, signals, assessment) |
+| `core` | State Synthesis — 2-4hr signal window for holistic environment assessment (environment level, key factors, sources) |
 
-## Quick Start
+## Remote Usage (HTTP)
+
+Point any MCP client at the hosted endpoint:
+
+```
+https://blackswanmcp-app-pu6a3.ondigitalocean.app/mcp
+```
+
+No credentials needed — the server holds the Firestore service account key.
+
+## Local Usage (stdio)
 
 ```bash
-# Install
 npm install
-
-# Set up credentials
 export FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/serviceAccountKey.json
-
-# Run
 npm run dev
 ```
 
-## Usage with Claude Desktop
+### Claude Desktop
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
@@ -43,14 +47,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-Then ask Claude: *"What's the current crypto risk level?"* — Claude will call `check_risk`.
-
-## Usage with MCP Inspector
-
-```bash
-export FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/serviceAccountKey.json
-npm run inspect
-```
+Then ask Claude: *"What does Flare say about current crypto risk?"*
 
 ## Environment Variables
 
@@ -59,14 +56,19 @@ npm run inspect
 | `FIREBASE_PROJECT_ID` | `oaiao-labs` | Firebase project ID |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | `./serviceAccountKey.json` | Path to service account key file |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | — | Alternative: service account as JSON string |
+| `TRANSPORT_MODE` | `stdio` | Transport mode: `stdio` or `http` |
+| `PORT` | `3000` | HTTP server port (Docker default: 8080) |
 | `LOG_LEVEL` | `info` | Log level |
 
 ## Development
 
 ```bash
-npm run dev        # Run with tsx (hot reload)
+npm run dev        # stdio mode (local)
+npm run dev:http   # HTTP mode (port 3000)
 npm run build      # Compile TypeScript
-npm start          # Run compiled version
+npm start          # Run compiled (stdio)
+npm start:http     # Run compiled (HTTP)
+npm test           # Run tests
 npm run inspect    # MCP Inspector UI
 ```
 
@@ -74,19 +76,19 @@ npm run inspect    # MCP Inspector UI
 
 ```
 MCP Client (Claude Desktop, OpenClaw, etc.)
-        │ stdio (JSON-RPC)
-        ▼
-┌─────────────────┐
-│  BlackSwan MCP  │──── check_risk
-│  Server         │──── assess_environment
-│                 │──── system_status
-└────────┬────────┘
-         │ Firebase Admin SDK (read-only)
-         ▼
-┌─────────────────┐
-│  Firestore      │
-│  (oaiao-labs)   │
-└─────────────────┘
+        │
+        ├── stdio (local)
+        └── HTTP POST /mcp (remote)
+                │
+                ▼
+       ┌─────────────────┐
+       │  BlackSwan MCP   │──── flare
+       │  Server          │──── core
+       └────────┬─────────┘
+                │ Firebase Admin SDK (read-only)
+                ▼
+       ┌─────────────────┐
+       │  Firestore       │
+       │  (oaiao-labs)    │
+       └─────────────────┘
 ```
-
-Three production dependencies: `@modelcontextprotocol/sdk`, `firebase-admin`, `zod`.

@@ -1,5 +1,5 @@
 /**
- * Smoke test — calls all 3 MCP tools against real Firestore and prints output.
+ * Smoke test — calls all MCP tools against real Firestore and prints output.
  *
  * Usage:
  *   FIREBASE_SERVICE_ACCOUNT_PATH=~/firestore-test/serviceAccountKey.json npm run smoke
@@ -40,7 +40,7 @@ async function main() {
   }
 
   // Call each tool
-  const toolNames = ["check_risk", "assess_environment", "system_status"];
+  const toolNames = ["flare", "core"];
 
   for (const name of toolNames) {
     console.log("\n" + "=".repeat(60));
