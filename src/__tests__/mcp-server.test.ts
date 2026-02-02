@@ -233,7 +233,7 @@ describe("flare", () => {
 
     expect(result.isError).toBe(true);
     const data = parseToolOutput(result);
-    expect(data.error).toContain("Firestore unavailable");
+    expect(data.error).toBe("Internal error fetching Flare data.");
   });
 });
 
@@ -334,7 +334,7 @@ describe("core", () => {
 
     expect(result.isError).toBe(true);
     const data = parseToolOutput(result);
-    expect(data.error).toContain("Permission denied");
+    expect(data.error).toBe("Internal error fetching Core data.");
   });
 });
 

@@ -20,6 +20,9 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist/ ./dist/
 
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
+
 ENV TRANSPORT_MODE=http
 ENV PORT=8080
 

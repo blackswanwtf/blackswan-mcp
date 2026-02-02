@@ -218,7 +218,7 @@ describe("GET /api/flare", () => {
     const body = await res.json();
 
     expect(res.status).toBe(500);
-    expect(body.error).toContain("connection failed");
+    expect(body.error).toBe("Internal server error");
   });
 });
 
@@ -271,6 +271,6 @@ describe("GET /api/core", () => {
     const body = await res.json();
 
     expect(res.status).toBe(500);
-    expect(body.error).toContain("timeout");
+    expect(body.error).toBe("Internal server error");
   });
 });

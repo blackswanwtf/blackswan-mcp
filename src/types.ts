@@ -27,10 +27,10 @@ export const CoreOutputSchema = z.object({
 
 export const AgentRunSchema = z.object({
   agent: z.enum(["core", "flare", "sentinel", "crisis"]),
-  createdAt: z.any(), // Firestore Timestamp
+  createdAt: z.any(), // Firestore Timestamp — validated at use-site via optional chaining
   completedAt: z.any(),
   model: z.string(),
-  output: z.any(), // Flare or Core output depending on agent
+  output: z.record(z.unknown()), // Validated per-agent via FlareOutputSchema / CoreOutputSchema
   success: z.boolean(),
   usage: z
     .object({

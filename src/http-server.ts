@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import type { Server } from "node:http";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createServer } from "./mcp-server.js";
@@ -11,11 +13,34 @@ import {
 } from "./firestore-client.js";
 import { FlareOutputSchema, CoreOutputSchema } from "./types.js";
 
+const MAX_CONCURRENT_MCP = 20;
+let activeMcpSessions = 0;
+
 export function createApp(): express.Express {
   const app = express();
 
+  app.set("trust proxy", 1);
+  app.disable("x-powered-by");
+  app.use(helmet());
   app.use(cors({ methods: ["GET", "POST"] }));
   app.use(express.json({ limit: "10kb" }));
+
+  // ── Rate limiting ───────────────────────────────────────────────────────────
+  const apiLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 60,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+  });
+
+  const mcpLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 30,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+  });
 
   // ── Health check ──────────────────────────────────────────────────────────
   app.get("/health", (_req, res) => {
@@ -23,7 +48,7 @@ export function createApp(): express.Express {
   });
 
   // ── REST API endpoints ────────────────────────────────────────────────────
-  app.get("/api/flare", async (_req, res) => {
+  app.get("/api/flare", apiLimiter, async (_req, res) => {
     try {
       const run = await getLatestFlareRun();
       if (!run) {
@@ -38,12 +63,12 @@ export function createApp(): express.Express {
       const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
       res.json({ agent: "flare", data_age: formatDataAge(createdAt), ...parseResult.data });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Unknown error";
-      res.status(500).json({ error: `Error fetching Flare data: ${msg}` });
+      console.error("[BlackSwan MCP] /api/flare error:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  app.get("/api/core", async (_req, res) => {
+  app.get("/api/core", apiLimiter, async (_req, res) => {
     try {
       const run = await getLatestCoreRun();
       if (!run) {
@@ -58,13 +83,19 @@ export function createApp(): express.Express {
       const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
       res.json({ agent: "core", data_age: formatDataAge(createdAt), ...parseResult.data });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Unknown error";
-      res.status(500).json({ error: `Error fetching Core data: ${msg}` });
+      console.error("[BlackSwan MCP] /api/core error:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
   // ── MCP endpoint (stateless) ──────────────────────────────────────────────
-  app.post("/mcp", async (req, res) => {
+  app.post("/mcp", mcpLimiter, async (req, res) => {
+    if (activeMcpSessions >= MAX_CONCURRENT_MCP) {
+      res.status(503).json({ error: "Server busy. Please try again later." });
+      return;
+    }
+
+    activeMcpSessions++;
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
@@ -75,6 +106,7 @@ export function createApp(): express.Express {
     await transport.handleRequest(req, res, req.body);
 
     res.on("close", () => {
+      activeMcpSessions--;
       transport.close();
       server.close();
     });

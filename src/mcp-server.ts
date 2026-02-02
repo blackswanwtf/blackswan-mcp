@@ -60,12 +60,12 @@ export function createServer(): McpServer {
           ],
         };
       } catch (error) {
-        const msg = error instanceof Error ? error.message : "Unknown error";
+        console.error("[BlackSwan MCP] Flare tool error:", error);
         return {
           content: [
             {
               type: "text" as const,
-              text: JSON.stringify({ error: `Error fetching Flare data: ${msg}` }),
+              text: JSON.stringify({ error: "Internal error fetching Flare data." }),
             },
           ],
           isError: true,
@@ -122,12 +122,12 @@ export function createServer(): McpServer {
           ],
         };
       } catch (error) {
-        const msg = error instanceof Error ? error.message : "Unknown error";
+        console.error("[BlackSwan MCP] Core tool error:", error);
         return {
           content: [
             {
               type: "text" as const,
-              text: JSON.stringify({ error: `Error fetching Core data: ${msg}` }),
+              text: JSON.stringify({ error: "Internal error fetching Core data." }),
             },
           ],
           isError: true,

@@ -26,7 +26,7 @@ function loadServiceAccountFromFile(
 
   if (!fs.existsSync(absolutePath)) {
     console.error(
-      `[BlackSwan MCP] Service account file not found: ${absolutePath}`
+      "[BlackSwan MCP] Service account file not found at configured path"
     );
     return null;
   }
@@ -34,13 +34,10 @@ function loadServiceAccountFromFile(
   try {
     const fileContents = fs.readFileSync(absolutePath, "utf8");
     const serviceAccount = JSON.parse(fileContents);
-    console.error(
-      `[BlackSwan MCP] Loaded service account from: ${absolutePath}`
-    );
+    console.error("[BlackSwan MCP] Service account loaded successfully");
     return serviceAccount;
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    console.error(`[BlackSwan MCP] Failed to load service account: ${msg}`);
+  } catch {
+    console.error("[BlackSwan MCP] Failed to parse service account file");
     return null;
   }
 }
