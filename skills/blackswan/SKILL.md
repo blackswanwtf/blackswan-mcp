@@ -1,7 +1,7 @@
 ---
 name: blackswan
 description: "Real-time crypto risk intelligence. Two tools: Flare (30-min precursor detection, immediate alarms) and Core (2-4hr state synthesis, holistic assessment). No API key required."
-homepage: https://github.com/oaiao-labs/blackswan-mcp-server
+homepage: https://github.com/oaiao/blackswan-mcp-server
 metadata: {"emoji": "🦢", "requires": {"bins": ["curl"]}}
 ---
 
@@ -24,7 +24,7 @@ BlackSwan monitors crypto markets 24/7 and produces two risk assessments:
 ## Base URL
 
 ```
-https://blackswan.oaiao.ai
+https://mcp.blackswan.wtf
 ```
 
 ## Endpoints
@@ -34,7 +34,7 @@ https://blackswan.oaiao.ai
 Returns the latest Flare precursor detection assessment.
 
 ```bash
-curl -s https://blackswan.oaiao.ai/api/flare
+curl -s https://mcp.blackswan.wtf/api/flare
 ```
 
 **Response fields:**
@@ -54,7 +54,7 @@ curl -s https://blackswan.oaiao.ai/api/flare
 Returns the latest Core state synthesis assessment.
 
 ```bash
-curl -s https://blackswan.oaiao.ai/api/core
+curl -s https://mcp.blackswan.wtf/api/core
 ```
 
 **Response fields:**
@@ -105,8 +105,8 @@ On non-200 responses, the body is `{"error": "..."}` with a human-readable messa
 To get a full picture, call both endpoints:
 
 ```bash
-curl -s https://blackswan.oaiao.ai/api/flare
-curl -s https://blackswan.oaiao.ai/api/core
+curl -s https://mcp.blackswan.wtf/api/flare
+curl -s https://mcp.blackswan.wtf/api/core
 ```
 
 Present Flare results first (immediate risks), then Core (broader context).
