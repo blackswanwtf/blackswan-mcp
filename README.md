@@ -1,47 +1,43 @@
 # BlackSwan MCP Server
 
-Real-time crypto risk intelligence for AI agents via the [Model Context Protocol](https://modelcontextprotocol.io/).
-
-BlackSwan monitors crypto markets across 6 risk dimensions (Market, Event, Protocol, Regulatory, Counterparty, Contagion) using multiple data pipelines and AI agents. This MCP server exposes the latest risk assessments as tools that any MCP-compatible client can use.
+Real-time crypto risk intelligence via the [Model Context Protocol](https://modelcontextprotocol.io/). Two AI agents monitor what's happening 24/7 — before news breaks, as it breaks, and why it happened. Enables agents to have real-time risk intelligence and awareness, not yesterday's news.
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| `flare` | Precursor Detection — 30-min signal window for immediate risk alarm (severity, signals, assessment) |
-| `core` | State Synthesis — 2-4hr signal window for holistic environment assessment (environment level, key factors, sources) |
+| Tool | What it answers |
+|------|----------------|
+| **Flare** | "Is something happening right now?" — Precursor detection from a 15-minute signal window |
+| **Core** | "What's the overall risk environment?" — State synthesis from a 60-minute signal window |
 
-## Remote Usage (HTTP)
+## Connect
 
-Point any MCP client at the hosted endpoint:
+### MCP
+
+Point any MCP client at:
 
 ```
-https://blackswanmcp-app-pu6a3.ondigitalocean.app/mcp
+https://mcp.blackswan.wtf/mcp
 ```
 
-No credentials needed — the server holds the Firestore service account key.
+No API key required.
 
-## Local Usage (stdio)
+### REST API
 
 ```bash
-npm install
-export FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/serviceAccountKey.json
-npm run dev
+curl -s https://mcp.blackswan.wtf/api/flare
+curl -s https://mcp.blackswan.wtf/api/core
 ```
 
 ### Claude Desktop
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Add to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "blackswan": {
-      "command": "npx",
-      "args": ["tsx", "/path/to/blackswan-mcp-server/src/index.ts"],
-      "env": {
-        "FIREBASE_SERVICE_ACCOUNT_PATH": "/path/to/serviceAccountKey.json"
-      }
+      "type": "http",
+      "url": "https://mcp.blackswan.wtf/mcp"
     }
   }
 }
@@ -49,46 +45,65 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 Then ask Claude: *"What does Flare say about current crypto risk?"*
 
-## Environment Variables
+## Response Format
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FIREBASE_PROJECT_ID` | `oaiao-labs` | Firebase project ID |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | `./serviceAccountKey.json` | Path to service account key file |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | — | Alternative: service account as JSON string |
-| `TRANSPORT_MODE` | `stdio` | Transport mode: `stdio` or `http` |
-| `PORT` | `3000` | HTTP server port (Docker default: 8080) |
-| `LOG_LEVEL` | `info` | Log level |
+### Flare
 
-## Development
+| Field | Description |
+|-------|-------------|
+| `agent` | Always `"flare"` |
+| `data_age` | Human-readable age (e.g. "12 minutes ago") |
+| `status` | `"clear"` or `"alert"` |
+| `severity` | `"none"`, `"low"`, `"medium"`, `"high"`, or `"critical"` |
+| `checked_at` | ISO 8601 timestamp |
+| `assessment` | Natural language risk assessment |
+| `signals` | Array of detected signals with `type`, `source`, and `detail` |
 
-```bash
-npm run dev        # stdio mode (local)
-npm run dev:http   # HTTP mode (port 3000)
-npm run build      # Compile TypeScript
-npm start          # Run compiled (stdio)
-npm start:http     # Run compiled (HTTP)
-npm test           # Run tests
-npm run inspect    # MCP Inspector UI
-```
+### Core
 
-## Architecture
+| Field | Description |
+|-------|-------------|
+| `agent` | Always `"core"` |
+| `data_age` | Human-readable age (e.g. "1 hour ago") |
+| `timestamp` | ISO 8601 timestamp |
+| `environment` | `"stable"`, `"elevated"`, `"stressed"`, or `"crisis"` |
+| `assessment` | Natural language risk assessment |
+| `key_factors` | Array of main risk factors |
+| `sources_used` | Data sources used in the assessment |
+| `data_freshness` | How fresh the underlying data is |
 
-```
-MCP Client (Claude Desktop, OpenClaw, etc.)
-        │
-        ├── stdio (local)
-        └── HTTP POST /mcp (remote)
-                │
-                ▼
-       ┌─────────────────┐
-       │  BlackSwan MCP   │──── flare
-       │  Server          │──── core
-       └────────┬─────────┘
-                │ Firebase Admin SDK (read-only)
-                ▼
-       ┌─────────────────┐
-       │  Firestore       │
-       │  (oaiao-labs)    │
-       └─────────────────┘
-```
+## Interpreting Results
+
+### Flare Severity
+
+| Level | Meaning |
+|-------|---------|
+| `none` | No precursors detected, markets quiet |
+| `low` | Minor signals, worth noting but not actionable |
+| `medium` | Notable signals, warrants attention |
+| `high` | Strong precursors, elevated risk of sudden moves |
+| `critical` | Extreme signals, immediate risk of major event |
+
+### Core Environment
+
+| Level | Meaning |
+|-------|---------|
+| `stable` | Normal conditions, low systemic risk |
+| `elevated` | Above-normal risk, some stress indicators |
+| `stressed` | Significant stress across multiple indicators |
+| `crisis` | Severe market stress, active dislocation or contagion |
+
+## Error Responses
+
+| HTTP Status | Meaning |
+|-------------|---------|
+| `200` | Success |
+| `502` | Agent output failed validation |
+| `503` | No recent agent runs — system may be starting up |
+| `500` | Unexpected server error |
+
+Non-200 responses return `{"error": "..."}` with a human-readable message.
+
+## License
+
+MIT
