@@ -15,7 +15,7 @@ export function createServer(): McpServer {
   // ── flare ─────────────────────────────────────────────────────────────
   server.tool(
     "flare",
-    "BlackSwan Flare — Precursor Detection agent. Returns the latest risk assessment from a 30-minute signal window across derivatives, prediction markets, social intelligence, and market data. Use this for immediate, alarm-bell risk detection. Output: { status, severity (none/low/medium/high/critical), checked_at, assessment, signals[] }",
+    "BlackSwan Flare — Precursor Detection agent. Returns the latest risk assessment from a 15-minute signal window across liquidations, funding rates, prediction markets, crypto prices, and high-urgency social intelligence. Use this for immediate, alarm-bell risk detection. Output: { status, severity (none/low/medium/high/critical), checked_at, assessment, signals[] }",
     async () => {
       try {
         const run = await getLatestFlareRun();
@@ -77,7 +77,7 @@ export function createServer(): McpServer {
   // ── core ──────────────────────────────────────────────────────────────
   server.tool(
     "core",
-    "BlackSwan Core — State Synthesis agent. Returns the latest comprehensive risk environment assessment from a 2-4 hour signal window across all data sources including news. Use this for full market context and holistic risk assessment. Output: { timestamp, environment (stable/elevated/stressed/crisis), assessment, key_factors[], sources_used[], data_freshness }",
+    "BlackSwan Core — State Synthesis agent. Returns the latest comprehensive risk environment assessment from a 60-minute signal window across liquidations, funding rates, prediction markets, crypto prices, and social intelligence. Use this for full market context and holistic risk assessment. Output: { timestamp, environment (stable/elevated/stressed/crisis), assessment, key_factors[], sources_used[], data_freshness }",
     async () => {
       try {
         const run = await getLatestCoreRun();

@@ -1,6 +1,6 @@
 ---
 name: blackswan
-description: "Real-time crypto risk intelligence. Two tools: Flare (30-min precursor detection, immediate alarms) and Core (2-4hr state synthesis, holistic assessment). No API key required."
+description: "Real-time crypto risk intelligence. Two tools: Flare (15-min precursor detection, immediate alarms) and Core (60-min state synthesis, holistic assessment). No API key required."
 homepage: https://github.com/oaiao/blackswan-mcp-server
 metadata: {"emoji": "🦢", "requires": {"bins": ["curl"]}}
 ---
@@ -9,8 +9,8 @@ metadata: {"emoji": "🦢", "requires": {"bins": ["curl"]}}
 
 BlackSwan monitors crypto markets 24/7 and produces two risk assessments:
 
-- **Flare** — Precursor detection from a 30-minute signal window. Use for immediate, alarm-bell risk checks.
-- **Core** — State synthesis from a 2-4 hour signal window. Use for full market context and holistic risk assessment.
+- **Flare** — Precursor detection from a 15-minute signal window. Use for immediate, alarm-bell risk checks.
+- **Core** — State synthesis from a 60-minute signal window. Use for full market context and holistic risk assessment.
 
 ## When to use each tool
 
