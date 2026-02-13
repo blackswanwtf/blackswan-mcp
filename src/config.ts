@@ -7,9 +7,7 @@ export interface Config {
 }
 
 export const config: Config = {
-  riskEngineUrl:
-    process.env.RISK_ENGINE_URL ||
-    "https://opus-engine-app-fhv8l.ondigitalocean.app",
+  riskEngineUrl: process.env.RISK_ENGINE_URL || "",
   riskEngineApiKey: process.env.RISK_ENGINE_API_KEY || null,
   logLevel: process.env.LOG_LEVEL || "info",
   transportMode:

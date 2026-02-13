@@ -51,7 +51,7 @@ npm run smoke              # Smoke test against live Risk Engine
 ## Environment Variables
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `RISK_ENGINE_URL` | `https://opus-engine-app-fhv8l.ondigitalocean.app` | Risk Engine base URL |
+| `RISK_ENGINE_URL` | — (required) | Risk Engine base URL |
 | `RISK_ENGINE_API_KEY` | — | API key for Risk Engine (`X-API-Key` header) |
 | `TRANSPORT_MODE` | `stdio` | Transport mode: `stdio` or `http` |
 | `PORT` | `3000` | HTTP server port (only used in HTTP mode) |
