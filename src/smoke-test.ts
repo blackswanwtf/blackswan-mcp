@@ -2,7 +2,7 @@
  * Smoke test — calls all MCP tools against the Risk Engine and prints output.
  *
  * Usage:
- *   RISK_ENGINE_URL=https://opus-engine-app-fhv8l.ondigitalocean.app \
+ *   RISK_ENGINE_URL=https://your-risk-engine-url \
  *   RISK_ENGINE_API_KEY=your-key npm run smoke
  */
 
