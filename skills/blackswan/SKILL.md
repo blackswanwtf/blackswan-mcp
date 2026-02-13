@@ -1,5 +1,5 @@
 ---
-name: blackclaw
+name: blackswan
 description: "Real-time crypto risk intelligence; before and as things break. Two tools: Flare (15-min precursor detection, immediate alarms) and Core (60-min state synthesis, context assessment). Free access to the last analysis. No API key required. Upgrade to x402 for custom analysis."
 homepage: https://github.com/blackswanwtf/blackswan-mcp
 metadata: {"emoji": "🦢", "requires": {"bins": ["curl"]}}

@@ -1,4 +1,3 @@
-import { initializeFirebase } from "./firebase.js";
 import { validateConfig, config } from "./config.js";
 
 async function main() {
@@ -8,7 +7,9 @@ async function main() {
     process.exit(1);
   }
 
-  initializeFirebase();
+  console.error(
+    `[BlackSwan MCP] Using Risk Engine at ${config.riskEngineUrl}`
+  );
 
   if (config.transportMode === "http") {
     const { startHttpServer } = await import("./http-server.js");

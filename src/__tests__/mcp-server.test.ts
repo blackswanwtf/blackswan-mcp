@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import type { AgentRun } from "../types.js";
+import type { LatestRun } from "../risk-engine-client.js";
 
 // ---------------------------------------------------------------------------
-// Mock firestore-client — keep formatDataAge real, mock Firestore queries
+// Mock risk-engine-client — keep formatDataAge real, mock HTTP queries
 // ---------------------------------------------------------------------------
-vi.mock("../firestore-client.js", async (importOriginal) => {
+vi.mock("../risk-engine-client.js", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../firestore-client.js")>();
+    await importOriginal<typeof import("../risk-engine-client.js")>();
   return {
     ...actual,
     getLatestFlareRun: vi.fn(),
@@ -19,25 +19,16 @@ vi.mock("../firestore-client.js", async (importOriginal) => {
 import {
   getLatestFlareRun,
   getLatestCoreRun,
-} from "../firestore-client.js";
+} from "../risk-engine-client.js";
 import { createServer } from "../mcp-server.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeTimestamp(date: Date) {
-  return { toDate: () => date };
-}
-
-function mockFlareRun(overrides: Partial<AgentRun> = {}): AgentRun {
+function mockFlareRun(overrides: Partial<LatestRun> = {}): LatestRun {
   const now = new Date();
   return {
-    agent: "flare",
-    createdAt: makeTimestamp(now),
-    completedAt: makeTimestamp(now),
-    model: "claude-3.5-sonnet",
-    success: true,
     output: {
       status: "alert",
       severity: "high",
@@ -57,18 +48,14 @@ function mockFlareRun(overrides: Partial<AgentRun> = {}): AgentRun {
         },
       ],
     },
+    createdAt: now,
     ...overrides,
   };
 }
 
-function mockCoreRun(overrides: Partial<AgentRun> = {}): AgentRun {
+function mockCoreRun(overrides: Partial<LatestRun> = {}): LatestRun {
   const now = new Date();
   return {
-    agent: "core",
-    createdAt: makeTimestamp(now),
-    completedAt: makeTimestamp(now),
-    model: "claude-3.5-sonnet",
-    success: true,
     output: {
       timestamp: now.toISOString(),
       environment: "elevated",
@@ -88,6 +75,7 @@ function mockCoreRun(overrides: Partial<AgentRun> = {}): AgentRun {
       ],
       data_freshness: "all sources within 15 minutes",
     },
+    createdAt: now,
     ...overrides,
   };
 }
@@ -223,9 +211,9 @@ describe("flare", () => {
     expect(data.error).toContain("Failed to parse Flare output");
   });
 
-  it("returns isError when Firestore throws", async () => {
+  it("returns isError when Risk Engine is unreachable", async () => {
     vi.mocked(getLatestFlareRun).mockRejectedValue(
-      new Error("Firestore unavailable")
+      new Error("Risk Engine unavailable")
     );
     await setup();
 
@@ -321,7 +309,7 @@ describe("core", () => {
     expect(data.error).toContain("Failed to parse Core output");
   });
 
-  it("returns isError when Firestore throws", async () => {
+  it("returns isError when Risk Engine is unreachable", async () => {
     vi.mocked(getLatestCoreRun).mockRejectedValue(
       new Error("Permission denied")
     );
@@ -344,7 +332,7 @@ describe("formatDataAge", () => {
   it("is used correctly in tool output", async () => {
     const threeMinAgo = new Date(Date.now() - 3 * 60_000);
     vi.mocked(getLatestFlareRun).mockResolvedValue(
-      mockFlareRun({ createdAt: makeTimestamp(threeMinAgo) })
+      mockFlareRun({ createdAt: threeMinAgo })
     );
     await setup();
 

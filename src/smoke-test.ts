@@ -1,14 +1,14 @@
 /**
- * Smoke test — calls all MCP tools against real Firestore and prints output.
+ * Smoke test — calls all MCP tools against the Risk Engine and prints output.
  *
  * Usage:
- *   FIREBASE_SERVICE_ACCOUNT_PATH=~/firestore-test/serviceAccountKey.json npm run smoke
+ *   RISK_ENGINE_URL=https://opus-engine-app-fhv8l.ondigitalocean.app \
+ *   RISK_ENGINE_API_KEY=your-key npm run smoke
  */
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createServer } from "./mcp-server.js";
-import { initializeFirebase } from "./firebase.js";
 import { validateConfig } from "./config.js";
 
 async function main() {
@@ -18,9 +18,7 @@ async function main() {
     process.exit(1);
   }
 
-  initializeFirebase();
-
-  // Wire up MCP client ↔ server in-process
+  // Wire up MCP client <-> server in-process
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
 

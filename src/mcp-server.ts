@@ -3,7 +3,7 @@ import {
   getLatestFlareRun,
   getLatestCoreRun,
   formatDataAge,
-} from "./firestore-client.js";
+} from "./risk-engine-client.js";
 import { FlareOutputSchema, CoreOutputSchema } from "./types.js";
 
 export function createServer(): McpServer {
@@ -45,15 +45,13 @@ export function createServer(): McpServer {
           };
         }
 
-        const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
-
         return {
           content: [
             {
               type: "text" as const,
               text: JSON.stringify({
                 agent: "flare",
-                data_age: formatDataAge(createdAt),
+                data_age: formatDataAge(run.createdAt),
                 ...parseResult.data,
               }),
             },
@@ -107,15 +105,13 @@ export function createServer(): McpServer {
           };
         }
 
-        const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
-
         return {
           content: [
             {
               type: "text" as const,
               text: JSON.stringify({
                 agent: "core",
-                data_age: formatDataAge(createdAt),
+                data_age: formatDataAge(run.createdAt),
                 ...parseResult.data,
               }),
             },

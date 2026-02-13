@@ -10,7 +10,7 @@ import {
   getLatestFlareRun,
   getLatestCoreRun,
   formatDataAge,
-} from "./firestore-client.js";
+} from "./risk-engine-client.js";
 import { FlareOutputSchema, CoreOutputSchema } from "./types.js";
 
 const MAX_CONCURRENT_MCP = 20;
@@ -60,8 +60,7 @@ export function createApp(): express.Express {
         res.status(502).json({ error: "Flare output failed schema validation." });
         return;
       }
-      const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
-      res.json({ agent: "flare", data_age: formatDataAge(createdAt), ...parseResult.data });
+      res.json({ agent: "flare", data_age: formatDataAge(run.createdAt), ...parseResult.data });
     } catch (error) {
       console.error("[BlackSwan MCP] /api/flare error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -80,8 +79,7 @@ export function createApp(): express.Express {
         res.status(502).json({ error: "Core output failed schema validation." });
         return;
       }
-      const createdAt = run.createdAt?.toDate?.() ?? new Date(run.createdAt);
-      res.json({ agent: "core", data_age: formatDataAge(createdAt), ...parseResult.data });
+      res.json({ agent: "core", data_age: formatDataAge(run.createdAt), ...parseResult.data });
     } catch (error) {
       console.error("[BlackSwan MCP] /api/core error:", error);
       res.status(500).json({ error: "Internal server error" });

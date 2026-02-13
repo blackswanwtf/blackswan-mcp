@@ -1,18 +1,16 @@
 export interface Config {
-  firebaseProjectId: string;
-  firebaseServiceAccountPath: string | null;
-  firebaseServiceAccountJson: string | null;
+  riskEngineUrl: string;
+  riskEngineApiKey: string | null;
   logLevel: string;
   transportMode: "stdio" | "http";
   port: number;
 }
 
 export const config: Config = {
-  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "oaiao-labs",
-  firebaseServiceAccountPath:
-    process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "./serviceAccountKey.json",
-  firebaseServiceAccountJson:
-    process.env.FIREBASE_SERVICE_ACCOUNT_JSON || null,
+  riskEngineUrl:
+    process.env.RISK_ENGINE_URL ||
+    "https://opus-engine-app-fhv8l.ondigitalocean.app",
+  riskEngineApiKey: process.env.RISK_ENGINE_API_KEY || null,
   logLevel: process.env.LOG_LEVEL || "info",
   transportMode:
     process.env.TRANSPORT_MODE === "http" ? "http" : "stdio",
@@ -22,10 +20,8 @@ export const config: Config = {
 export function validateConfig(): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  if (!config.firebaseServiceAccountPath && !config.firebaseServiceAccountJson) {
-    errors.push(
-      "Either FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_SERVICE_ACCOUNT_JSON must be set"
-    );
+  if (!config.riskEngineUrl) {
+    errors.push("RISK_ENGINE_URL must be set");
   }
 
   return { valid: errors.length === 0, errors };

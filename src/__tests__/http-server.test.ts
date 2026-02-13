@@ -5,35 +5,27 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 // ---------------------------------------------------------------------------
-// Mock firestore-client — same pattern as mcp-server.test.ts
+// Mock risk-engine-client — same pattern as mcp-server.test.ts
 // ---------------------------------------------------------------------------
-vi.mock("../firestore-client.js", async (importOriginal) => {
+vi.mock("../risk-engine-client.js", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../firestore-client.js")>();
+    await importOriginal<typeof import("../risk-engine-client.js")>();
   return {
     ...actual,
     getLatestFlareRun: vi.fn(),
     getLatestCoreRun: vi.fn(),
-    getPipelineCounters: vi.fn(),
-    getLatestRunTimestamps: vi.fn(),
   };
 });
 
 import {
   getLatestFlareRun,
   getLatestCoreRun,
-  getPipelineCounters,
-  getLatestRunTimestamps,
-} from "../firestore-client.js";
+} from "../risk-engine-client.js";
 import { createApp } from "../http-server.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function makeTimestamp(date: Date) {
-  return { toDate: () => date };
-}
 
 let server: Server;
 let baseUrl: string;
@@ -94,11 +86,6 @@ describe("POST /mcp", () => {
   it("can call flare via MCP client", async () => {
     const now = new Date();
     vi.mocked(getLatestFlareRun).mockResolvedValue({
-      agent: "flare",
-      createdAt: makeTimestamp(now),
-      completedAt: makeTimestamp(now),
-      model: "claude-3.5-sonnet",
-      success: true,
       output: {
         status: "alert",
         severity: "high",
@@ -112,6 +99,7 @@ describe("POST /mcp", () => {
           },
         ],
       },
+      createdAt: now,
     });
     await startServer();
 
@@ -168,11 +156,6 @@ describe("GET /api/flare", () => {
   it("returns 200 with valid flare data", async () => {
     const now = new Date();
     vi.mocked(getLatestFlareRun).mockResolvedValue({
-      agent: "flare",
-      createdAt: makeTimestamp(now),
-      completedAt: makeTimestamp(now),
-      model: "claude-3.5-sonnet",
-      success: true,
       output: {
         status: "alert",
         severity: "high",
@@ -186,6 +169,7 @@ describe("GET /api/flare", () => {
           },
         ],
       },
+      createdAt: now,
     });
     await startServer();
 
@@ -210,7 +194,7 @@ describe("GET /api/flare", () => {
     expect(body.error).toContain("No recent Flare");
   });
 
-  it("returns 500 when Firestore throws", async () => {
+  it("returns 500 when Risk Engine is unreachable", async () => {
     vi.mocked(getLatestFlareRun).mockRejectedValue(new Error("connection failed"));
     await startServer();
 
@@ -226,11 +210,6 @@ describe("GET /api/core", () => {
   it("returns 200 with valid core data", async () => {
     const now = new Date();
     vi.mocked(getLatestCoreRun).mockResolvedValue({
-      agent: "core",
-      createdAt: makeTimestamp(now),
-      completedAt: makeTimestamp(now),
-      model: "claude-3.5-sonnet",
-      success: true,
       output: {
         timestamp: now.toISOString(),
         environment: "elevated",
@@ -239,6 +218,7 @@ describe("GET /api/core", () => {
         sources_used: ["derivatives", "news", "social"],
         data_freshness: "All sources within 2 hours",
       },
+      createdAt: now,
     });
     await startServer();
 
@@ -263,7 +243,7 @@ describe("GET /api/core", () => {
     expect(body.error).toContain("No recent Core");
   });
 
-  it("returns 500 when Firestore throws", async () => {
+  it("returns 500 when Risk Engine is unreachable", async () => {
     vi.mocked(getLatestCoreRun).mockRejectedValue(new Error("timeout"));
     await startServer();
 
